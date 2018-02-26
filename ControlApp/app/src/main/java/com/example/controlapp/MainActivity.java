@@ -7,14 +7,11 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.view.Menu;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.Toast;
 
-/* H klash auth afora thn ylopoihsh ths kyrias "othonis", dhladh
-* ths formas eisodou kai sundeshs ston MQTT Broker, kathws kai
-* twn diaforwn epilogwn (settings) pou sunodeuoun th diadikasia. */
+/* H klash auth afora thn ylopoihsh ths kyrias "othonis",
+* dhladh ths formas eisodou kai sundeshs ston MQTT Broker. */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,35 +25,37 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(ConnectionReceiver,new IntentFilter("GETCONNECTION"));
     }
 
-    /** Called when the user taps the LOGIN button */
-    public void sendCredentials(View view) {
+    /* Called when the user taps the LOGIN button */
+    public void sendCredentials(View view)
+    {
+        SharedPreferences prefs = getSharedPreferences("MQTT_prefs",MODE_PRIVATE);
+        if(NetworkThread.checkConnectivity(getApplicationContext()))
+        {
+            if (prefs.contains("SERVER") && prefs.contains("PORT") && prefs.contains("USERNAME")
+            && prefs.contains("PASSWORD") && prefs.contains("TOPIC") && prefs.contains("FREQUENCY")
+            && prefs.contains("QOS"))
+            {
+                Intent intent = new Intent(this, MessagingService.class);
+                Bundle credentials = new Bundle();
 
-        RadioGroup QOSGroup; RadioButton QOSButton;
-        Intent intent = new Intent(this, MessagingService.class);
-        //edw ekkinw to service kai tou stelnw ta credentials
-        Bundle credentials = new Bundle();
+                credentials.putString("SERVER", prefs.getString("SERVER", ""));
+                credentials.putString("PORT", prefs.getString("PORT", ""));
+                credentials.putString("USERNAME", prefs.getString("USERNAME", ""));
+                credentials.putString("PASSWORD", prefs.getString("PASSWORD", ""));
+                credentials.putString("TOPIC", prefs.getString("TOPIC", ""));
+                credentials.putString("FREQUENCY", prefs.getString("FREQUENCY", ""));
+                credentials.putString("QOS", prefs.getString("QOS", ""));
 
-        EditText editText = (EditText) findViewById(R.id.Server);
-        credentials.putString("SERVER", editText.getText().toString());
-
-        editText = findViewById(R.id.Port);
-        credentials.putString("PORT", editText.getText().toString());
-
-        editText = findViewById(R.id.username);
-        credentials.putString("USERNAME", editText.getText().toString());
-
-        editText = findViewById(R.id.password);
-        credentials.putString("PASSWORD", editText.getText().toString());
-
-        editText = findViewById(R.id.topic);
-        credentials.putString("TOPIC", editText.getText().toString());
-
-        QOSGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        QOSButton = (RadioButton) findViewById(QOSGroup.getCheckedRadioButtonId());
-        credentials.putString("QOS", QOSButton.getText().toString());
-
-        intent.putExtras(credentials);
-        startService(intent);
+                intent.putExtras(credentials);
+                startService(intent);
+            }
+            else Toast.makeText(getApplicationContext(), "Insert Connection Settings First!", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Check Internet Connection!", Toast.LENGTH_SHORT).show();
+            NetworkThread.showNotification(getApplicationContext());
+        }
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -92,12 +91,18 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
+            case R.id.app_settings:
+                Intent intent = new Intent(getApplicationContext(),SettingsActivity.class);
+                startActivity(intent);
+                break;
+
             case R.id.option_exit:
                 onFinish();
 
             default:
                 return super.onOptionsItemSelected(item);
         }
+        return true;
     }
 
     private void onFinish() {
@@ -110,8 +115,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("CONNECTION"); //to string message periexei to status sundeshs
-            if (message.equals("CONNECTED"))
-            {
+            if (message.equals("CONNECTED")) {
                 //an einai true, phgaine me sto displaymessageactivity
                 Intent display = new Intent(getApplicationContext(),DisplayMessageActivity.class);
                 startActivity(display);

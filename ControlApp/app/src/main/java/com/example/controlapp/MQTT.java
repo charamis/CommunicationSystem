@@ -13,7 +13,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /* H klash auth, diathrei oles tis methodous gia thn egkathydrish
-kai to xeirismo ths sundeshs me ton MQTT Broker.  */
+kai to xeirismo ths sundeshs kai ths epikoinwnias me ton MQTT Broker.  */
 
 public class MQTT {
 
@@ -123,6 +123,21 @@ public class MQTT {
         } catch (MqttException ex) {
             System.err.println("Cannot Disconnect From Server!");
             ex.printStackTrace();
+        }
+    }
+
+    /* Sunarthsh dhmosieushs mhnumatos sto antistoixo topic. */
+    public void publishMessage(String msg) {
+        if(this.isConnected()) //elegxos sundeshs me ton broker!
+        {
+            MqttMessage message = new MqttMessage(msg.getBytes());
+            message.setQos(this.QOS);
+            try {
+                MQTTAndroidClient.publish(this.Topic+"_Answer",message);
+            } catch (MqttException ex) {
+                System.err.println("Cannot Publish Message!");
+                ex.printStackTrace();
+            }
         }
     }
 }

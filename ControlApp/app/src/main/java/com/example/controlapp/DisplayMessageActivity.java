@@ -10,16 +10,20 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /*  H klash auth, afora thn emfanish twn entolwn pou lamvanontai apo ton Broker,
-* kathws kai twn diaforwn koumpiwn-settings pou apaitountai. */
+ * kathws kai twn diaforwn koumpiwn-settings pou apaitountai. */
 
-public class DisplayMessageActivity extends AppCompatActivity {
-
+public class DisplayMessageActivity extends AppCompatActivity
+{
     private boolean doubleBackToExitPressedOnce = false; //gia na ylopoithei to double back button gia epistrofh
     private TextView receivedMessages;
+    private boolean soundSelected = false, flashSelected = false;
+    /* Ta parapanw boolean lamvanoun true timh, an o hxos kai to flash
+    antistoixa leitourgoun, kai false, se antitheth periptwsh. */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,13 +46,23 @@ public class DisplayMessageActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("DATA");
             receivedMessages.setText(message);
+            /* sto shmeio auto tha metavallw to state twn buttons, analoga me to lifthen mhnuma */
+            switchButtonState(message);
         }
     };
 
-    public void stopNotifications(View view) {
-        sendSetting("STOP");
+    public void Sound(View view) {
+        switchSoundButton(true);
+        sendSetting("SOUND");
         TextView warnings = findViewById(R.id.receivedMessages);
-        warnings.setText("Commands Stopped!");
+        warnings.setText("Sound Switched ON/OFF");
+    }
+
+    public void Flash(View view) {
+        switchFlashButton(true);
+        sendSetting("FLASH");
+        TextView warnings = findViewById(R.id.receivedMessages);
+        warnings.setText("Flash Switched ON/OFF");
     }
 
     public void Logout(View view) {
@@ -100,5 +114,37 @@ public class DisplayMessageActivity extends AppCompatActivity {
         Intent message = new Intent("SETSETTINGS");
         message.putExtra("SETTINGS",msg);
         sendBroadcast(message);
+    }
+
+    /* H parakatw sunarthsh metavallei thn timh twn booleans
+     * Flash kai Sound, analoga me to state leitourgias tous. */
+    private void switchButtonState(String msg)
+    {
+        if(msg.equals(MessagingService.ALL_ON)) { switchFlashButton(!flashSelected); switchSoundButton(!soundSelected); }
+        else if(msg.startsWith(MessagingService.SOUND_ON)) switchSoundButton(!soundSelected);
+        else if(msg.equals(MessagingService.SOUND_OFF)) switchSoundButton(soundSelected);
+        else if(msg.startsWith(MessagingService.FLASH_ON)) switchFlashButton(!flashSelected);
+        else if(msg.equals(MessagingService.FLASH_OFF)) switchFlashButton(flashSelected);
+        else if(msg.equals(MessagingService.ALL_OFF)) { switchFlashButton(flashSelected); switchSoundButton(soundSelected); }
+    }
+
+    /*  Enallagh tou flashSelected boolean kai tou button
+    pou emfanizetai sto DisplayMessageActivity. */
+    private void switchFlashButton(boolean _switch)
+    {
+        if(_switch) flashSelected = !flashSelected;
+        Button button = ((Button) findViewById(R.id.flash));
+        if(flashSelected == true) button.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_flash_off, 0, 0, 0);
+        else button.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_flash_on, 0, 0, 0);
+    }
+
+    /*  Enallagh tou soundSelected boolean kai tou button
+    pou emfanizetai sto DisplayMessageActivity. */
+    private void switchSoundButton(boolean _switch)
+    {
+        if(_switch) soundSelected = !soundSelected;
+        Button button = ((Button) findViewById(R.id.sound));
+        if(soundSelected == true) button.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_audio_off, 0, 0, 0);
+        else button.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_audio_on, 0, 0, 0);
     }
 }

@@ -5,8 +5,12 @@
     <string name="user">Username (Optional)</string>
     <string name="password">Password (Optional)</string>
     <string name="topic">Subscribe to Topic</string>
+    <string name="received_frequency">Frequency</string>
     <string name="login_button">Login</string>
-    <string name="stop_button">STOP</string>
+    <string name="save_button">Save Settings</string>
+    <string name="delete_button">Reset Settings</string>
+    <string name="sound_button">Sound</string>
+    <string name="flash_button">Flash</string>
     <string name="logout_button">Logout</string>
     <string name="radio_group">QOS</string>
     <string name="radio_button0">0</string>
